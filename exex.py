@@ -462,7 +462,6 @@ def postEdge(set2,kmin=None,kmax=None,polDegree=[3,3,3],knots=None):
         x2 = kmax
 
     xrange1 = [x1,x2]
-    print("++++++++++++++++++",xrange1)
 
     if (knots != None):
         if ( (len(polDegree)+1) != len(knots) ):
@@ -849,6 +848,14 @@ def fastbftr(fourier,npoint=4096,krange=[2.0,12.0],rstep=None,rmin=None,rmax=Non
 
 if __name__ == '__main__':
 
+    import sys
+
+    if len(sys.argv) > 1:
+        fileIn = str(sys.argv[1])
+    else:
+        fileIn = "Ge_calib.dat"
+
+    print("Using input file: %s"%(fileIn))
     #
     # plotting setup
     #
@@ -861,7 +868,6 @@ if __name__ == '__main__':
 
     #
     #load mu(E); E in eV
-    fileIn = "Ge_calib.dat"
     set0 = numpy.loadtxt(fileIn)
     plotSet(set0,xtitle="photon Energy [eV]",ytitle="$\mu$ [a.u.]", \
         toptitle="Raw data from: "+fileIn)
@@ -899,8 +905,8 @@ if __name__ == '__main__':
     # change abscissas to wavenumber
     set0 = e2k(set0)
 
-    #plotSet(set0,xtitle="k [$A^{-1}$]",ytitle="$\mu - \mu_{pre}$ [a.u.] ", \
-    #   toptitle="Raw data from: "+fileIn)
+    plotSet(set0,xtitle="k [$A^{-1}$]",ytitle="$\mu - \mu_{pre}$ [a.u.] ", \
+       toptitle="Raw data from: "+fileIn)
 
     #;
     #; Post edge ----------------------------------------------------
@@ -912,9 +918,16 @@ if __name__ == '__main__':
     #print("File written to disk: set22.dat")
 
     #fit0 = postEdge(set0,polDegree=[3,2,2,2],kmin=2.)
-    fit0 = postEdge(set0,polDegree=[3,2,2,3],knots=[2.0,4.0,6.0,10,20])
+    #fit0 = postEdge(set0,polDegree=[3,2,2,3],knots=[2.0,4.0,6.0,10,set0[:,0].max()
 
-    plotSet(set0,fit0,xtitle="k [$A^{-1}$]",ytitle=" fit ",toptitle="post edge",xmin=2,ymin=-.5,ymax=1.5)
+    k_min = 2.0
+    k_max = set0[:,0].max()
+    k_nzones = 3
+    print("k_min=%f, k_max:%f, k_nzones=%f"%(k_min,k_max,k_nzones))
+
+    fit0 = postEdge(set0,polDegree=[2]*k_nzones,knots=numpy.linspace(k_min,k_max,1+k_nzones))
+
+    plotSet(set0,fit0,xtitle="k [$A^{-1}$]",ytitle=" fit ",toptitle="post edge",xmin=2,ymin=-.5,ymax=fit0[-1,1]*2)
 
     #;
     #; Normalization ----------------------------------------------------
